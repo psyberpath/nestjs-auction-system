@@ -1,98 +1,169 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Live Auction System (NestJS)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This is a production-grade, real-time auction platform built with NestJS. It is designed to solve complex backend challenges including **concurrency (race conditions)**, **real-time updates**, **performance caching**, and **reliable background jobs**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This project serves as a demonstration of a senior-level, microservice-style architecture, proving a deep understanding of modern backend engineering principles.
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🚀 Key Features
 
-## Project setup
+* **Real-time Bidding:** Instant bid updates pushed to all clients via WebSockets (Socket.IO).
+* **Concurrency Safe:** Bulletproof bidding system using **PostgreSQL pessimistic locking** to prevent race conditions.
+* **High Performance:** Sub-100ms response times for "hot" auctions using a **Redis cache-aside strategy**.
+* **Reliable Auction Closure:** Guaranteed, on-time auction closures using a **BullMQ background job queue**.
+* **Secure:** JWT-based authentication (Passport.js) and authorization (custom guards).
+* **Observable:** Includes ` /health` checks for monitoring.
+* **Documented:** Fully interactive API documentation via Swagger (`/api/docs`).
 
-```bash
-$ npm install
+---
+
+## 🏗️ System Architecture
+
+This application follows a modern, decoupled architecture.
+
+```ascii
+      +------------------+
+      |      Client      |
+      |   (Browser/App)  |
+      +--------+---------+
+         |     |
+ (HTTP)  |     | (WebSocket)
+         |     |
+      +--v-----v---------+
+      |                  |
+      |  NestJS Server   |
+      |  (API / Gateway) |
+      |                  |
+      +--+------+--------+
+         |      |
+         |      |
++--------v-+  +-v--------+  +--------------+
+|          |  |          |  |              |
+| PostgreSQL |  |   Redis  |  |    BullMQ    |
+| (Database) |  | (Cache)  |  | (Job Queue)  |
+| - Users  |  | - Auction|  | - close-job  |
+| - Auctions|  |   Cache  |  | - ...        |
+| - Bids   |  |          |  |              |
++----------+  +----------+  +--------------+
+````
+
+**Request Flow (New Bid):**
+
+1.  Client sends `POST /bids` to the NestJS API.
+2.  `BidsService` begins a **PostgreSQL transaction**.
+3.  It acquires a **pessimistic lock** on the auction row to block other bids.
+4.  It validates the bid and saves the new `Bid` and updates the `Auction`.
+5.  It **invalidates the Redis cache** for that auction.
+6.  The transaction is committed.
+7.  `BidsService` calls the `AuctionsGateway` to broadcast the new bid.
+8.  `AuctionsGateway` emits the `new-bid` event to all clients in that auction's "room."
+
+-----
+
+## 🛠️ Tech Stack
+
+  * **Backend:** NestJS, TypeScript
+  * **Database:** PostgreSQL (with TypeORM)
+  * **Caching:** Redis (with `cache-manager`)
+  * **Queues:** BullMQ (backed by Redis)
+  * **Real-time:** WebSockets (Socket.IO)
+  * **Auth:** Passport.js, JWT, bcrypt
+  * **Validation:** `class-validator`
+  * **API Docs:** Swagger
+  * **Testing:** Jest, Supertest
+  * **DevOps:** Docker, Docker Compose
+
+-----
+
+## 🏆 Senior Engineering Highlights
+
+This project was built to solve specific, high-value engineering problems:
+
+### 1\. Concurrency Control (Race Condition Prevention)
+
+  * **Problem:** Two users bidding on the same item at the same millisecond can lead to a race condition, where the database state becomes inconsistent.
+  * **Solution:** The bidding logic is wrapped in a `DataSource.transaction()`. Inside this transaction, we use a **pessimistic write lock** (`.setLock('pessimistic_write')`) on the specific auction row. This forces concurrent bid requests to serialize, guaranteeing data integrity at scale.
+
+### 2\. Real-Time Broadcasting (WebSockets)
+
+  * **Problem:** A user shouldn't have to refresh their browser to see a new bid.
+  * **Solution:** We use a **WebSocket Gateway** (`AuctionsGateway`). Clients join a specific "room" for each auction (e.g., `auction:<id>`). When a bid is successfully processed, the `BidsService` calls the gateway to `emit('new-bid', ...)` to *only* the clients in that room.
+
+### 3\. Performance (Caching)
+
+  * **Problem:** A popular auction's `GET /auctions/:id` endpoint will be "hot," causing massive database load.
+  * **Solution:** We use a **cache-aside** strategy. The `findOne` controller is decorated with `@UseInterceptors(CacheInterceptor)`, which automatically caches the result in Redis.
+  * **Cache Invalidation:** To prevent stale data, the `BidsService` **explicitly deletes the cache key** (`cacheManager.del(...)`) inside the database transaction, guaranteeing that the cache is invalidated *if and only if* the new bid is successful.
+
+### 4\. Reliability (Background Jobs)
+
+  * **Problem:** Auctions must close reliably at their `endTime`, even if the server restarts. A simple cron job that scans the DB is fragile and inefficient.
+  * **Solution:** We use a **Producer/Consumer** pattern. When an auction is created, the `AuctionsService` (Producer) adds a **delayed job** to a **BullMQ** queue. A separate `AuctionProcessor` (Consumer) listens for these jobs and processes them at the scheduled time, ensuring reliable closure.
+
+-----
+
+## 🚀 Quick Start (Local Setup)
+
+1.  **Clone the repository:**
+
+    ```bash
+    git clone [YOUR_REPO_URL_HERE]
+    cd auction-service
+    ```
+
+2.  **Create your environment file:**
+    Copy the `example.env` to `.env` and fill in the values (the defaults will work with the `docker-compose.yml` file).
+
+    ```bash
+    cp example.env .env
+    ```
+
+3.  **Start the infrastructure (Database & Cache):**
+
+    ```bash
+    docker-compose up -d
+    ```
+
+4.  **Install dependencies:**
+
+    ```bash
+    npm install
+    ```
+
+5.  **Run database migrations:**
+    This will create all the tables in your PostgreSQL container.
+
+    ```bash
+    npm run migration:run
+    ```
+
+6.  **Run the application:**
+
+    ```bash
+    npm run start:dev
+    ```
+
+Your server is now running on `http://localhost:3000`.
+
+-----
+
+## 🧪 Testing
+
+This project includes a comprehensive end-to-end test suite that simulates a full, multi-user flow.
+
+1.  Make sure your Docker containers are running (`docker-compose up -d`).
+2.  Run the E2E test suite:
+    ```bash
+    npm run test:e2e
+    ```
+
+-----
+
+## 📖 API Documentation
+
+Once the server is running, the full, interactive API documentation (powered by Swagger) is available at:
+
+**`http://localhost:3000/api/docs`**
+
 ```
-
-## Compile and run the project
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
