@@ -1,4 +1,4 @@
-import { Processor, Process } from '@nestjs/bullmq';
+import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Auction, AuctionStatus } from '../entities/auction.entity';
@@ -6,15 +6,21 @@ import { Repository } from 'typeorm';
 import { Logger } from '@nestjs/common';
 
 @Processor('auctions')
-export class AuctionProcessor {
+export class AuctionProcessor extends WorkerHost {
   private readonly logger = new Logger(AuctionProcessor.name);
   constructor(
     @InjectRepository(Auction)
     private auctionsRepository: Repository<Auction>,
-  ) {}
+  ) {
+    super();
+  }
 
-  @Process('close-auction')
-  async handleCloseAuction(job: Job<{ auctionId: string }>) {
+  // @Process('close-auction')
+  // async handleCloseAuction(job: Job<{ auctionId: string }>) {
+  //   this.logger.log(
+  //     `Processing job ${job.id} for auction ${job.data.auctionId}`,
+  //   );
+  async process(job: Job<{ auctionId: string }>): Promise<void> {
     this.logger.log(
       `Processing job ${job.id} for auction ${job.data.auctionId}`,
     );

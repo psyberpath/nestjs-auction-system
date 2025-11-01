@@ -1,10 +1,11 @@
 import { Module, Logger } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from '../auth/auth.module';
 import { Auction } from '../entities/auction.entity';
 import { AuctionsController } from './auctions.controller';
 import { AuctionsService } from './auctions.service';
 import { AuctionsGateway } from './auctions/auctions.gateway';
-import { AuctionOwnerGuard } from 'src/guards/auction-owner.guard';
+import { AuctionOwnerGuard } from '../guards/auction-owner.guard';
 import { BullModule } from '@nestjs/bullmq';
 import { AuctionProcessor } from './auctions.processor';
 
@@ -14,6 +15,7 @@ import { AuctionProcessor } from './auctions.processor';
     BullModule.registerQueue({
       name: 'auctions',
     }),
+    AuthModule,
   ],
   controllers: [AuctionsController],
   providers: [
