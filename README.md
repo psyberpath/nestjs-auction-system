@@ -108,7 +108,7 @@ This project was built to solve specific, high-value engineering problems:
 1.  **Clone the repository:**
 
     ```bash
-    git clone [YOUR_REPO_URL_HERE]
+    git clone https://github.com/psyberpath/nestjs-auction-system.git
     cd auction-service
     ```
 
