@@ -6,7 +6,7 @@ This project serves as a demonstration of a senior-level, microservice-style arc
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
 * **Real-time Bidding:** Instant bid updates pushed to all clients via WebSockets (Socket.IO).
 * **Concurrency Safe:** Bulletproof bidding system using **PostgreSQL pessimistic locking** to prevent race conditions.
@@ -18,35 +18,9 @@ This project serves as a demonstration of a senior-level, microservice-style arc
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 This application follows a modern, decoupled architecture.
-
-```ascii
-      +------------------+
-      |      Client      |
-      |   (Browser/App)  |
-      +--------+---------+
-         |     |
- (HTTP)  |     | (WebSocket)
-         |     |
-      +--v-----v---------+
-      |                  |
-      |  NestJS Server   |
-      |  (API / Gateway) |
-      |                  |
-      +--+------+--------+
-         |      |
-         |      |
-+--------v-+  +-v--------+  +--------------+
-|          |  |          |  |              |
-| PostgreSQL |  |   Redis  |  |    BullMQ    |
-| (Database) |  | (Cache)  |  | (Job Queue)  |
-| - Users  |  | - Auction|  | - close-job  |
-| - Auctions|  |   Cache  |  | - ...        |
-| - Bids   |  |          |  |              |
-+----------+  +----------+  +--------------+
-````
 
 **Request Flow (New Bid):**
 
@@ -61,7 +35,7 @@ This application follows a modern, decoupled architecture.
 
 -----
 
-## 🛠️ Tech Stack
+## Tech Stack
 
   * **Backend:** NestJS, TypeScript
   * **Database:** PostgreSQL (with TypeORM)
@@ -76,7 +50,7 @@ This application follows a modern, decoupled architecture.
 
 -----
 
-## 🏆 Senior Engineering Highlights
+## Highlights
 
 This project was built to solve specific, high-value engineering problems:
 
@@ -103,7 +77,7 @@ This project was built to solve specific, high-value engineering problems:
 
 -----
 
-## 🚀 Quick Start (Local Setup)
+## Quick Start (Local Setup)
 
 1.  **Clone the repository:**
 
@@ -148,7 +122,7 @@ Your server is now running on `http://localhost:3000`.
 
 -----
 
-## 🧪 Testing
+## Testing
 
 This project includes a comprehensive end-to-end test suite that simulates a full, multi-user flow.
 
@@ -160,7 +134,7 @@ This project includes a comprehensive end-to-end test suite that simulates a ful
 
 -----
 
-## 📖 API Documentation
+## API Documentation
 
 Once the server is running, the full, interactive API documentation (powered by Swagger) is available at:
 

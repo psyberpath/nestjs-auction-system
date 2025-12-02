@@ -20,17 +20,3 @@ export class User extends BaseEntity {
   @OneToMany(() => Bid, (bid) => bid.bidder)
   bids: Bid[];
 }
-
-// User Entity
-// User {
-//   id: UUID (PK)
-//   email: string (unique)
-//   username: string (unique)
-//   password: string (hashed)
-//   createdAt: timestamp
-//   updatedAt: timestamp
-
-//   // Relations
-//   auctions: Auction[] (one-to-many)
-//   bids: Bid[] (one-to-many)
-// }

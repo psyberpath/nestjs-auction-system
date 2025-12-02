@@ -66,27 +66,3 @@ export class Auction extends BaseEntity {
   @OneToMany(() => Bid, (bid) => bid.auction)
   bids: Bid[];
 }
-
-// Auction Entity
-// Auction {
-//   id: UUID (PK)
-//   title: string
-//   description: text
-//   startingPrice: decimal(10,2)
-//   currentPrice: decimal(10,2)
-//   imageUrl: string (nullable)
-//   status: enum ['ACTIVE', 'CLOSED', 'CANCELLED']
-//   startTime: timestamp
-//   endTime: timestamp
-//   createdAt: timestamp
-//   updatedAt: timestamp
-//   version: integer (for optimistic locking)
-
-// Foreign Keys
-//   sellerId: UUID (FK -> User)
-//   winnerId: UUID (FK -> User, nullable)
-
-//   // Relations
-//   seller: User (many-to-one)
-//   winner: User (many-to-one, nullable)
-//   bids: Bid[] (one-to-many)

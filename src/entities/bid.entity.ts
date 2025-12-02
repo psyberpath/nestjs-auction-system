@@ -23,21 +23,3 @@ export class Bid extends BaseEntity {
   @Column()
   bidderId: string;
 }
-
-// Bid Entity
-// Bid {
-//   id: UUID (PK)
-//   amount: decimal(10,2)
-//   createdAt: timestamp
-
-//   // Foreign Keys
-//   auctionId: UUID (FK -> Auction)
-//   bidderId: UUID (FK -> User)
-
-//   // Relations
-//   auction: Auction (many-to-one)
-//   bidder: User (many-to-one)
-
-//   // Composite Index
-//   INDEX (auctionId, createdAt DESC)
-// }

@@ -46,7 +46,6 @@ export class AuthService {
 
   async login(loginDto: LoginDto): Promise<{ accessToken: string }> {
     const { email, password } = loginDto;
-    // const user = await this.usersRepository.findOneBy({ email });
     const user = await this.usersRepository
       .createQueryBuilder('user')
       .where('user.email = :email', { email })

@@ -38,7 +38,7 @@ import { HealthModule } from './health/health.module';
       },
     ]),
     ConfigModule.forRoot({
-      isGlobal: true, // makes ConfigService available app-wide
+      isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -51,7 +51,7 @@ import { HealthModule } from './health/health.module';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
         autoLoadEntities: true,
-        synchronize: true, // set false for production
+        synchronize: true,
       }),
     }),
     AuthModule,

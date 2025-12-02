@@ -15,11 +15,6 @@ export class AuctionProcessor extends WorkerHost {
     super();
   }
 
-  // @Process('close-auction')
-  // async handleCloseAuction(job: Job<{ auctionId: string }>) {
-  //   this.logger.log(
-  //     `Processing job ${job.id} for auction ${job.data.auctionId}`,
-  //   );
   async process(job: Job<{ auctionId: string }>): Promise<void> {
     this.logger.log(
       `Processing job ${job.id} for auction ${job.data.auctionId}`,

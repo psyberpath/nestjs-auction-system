@@ -29,7 +29,6 @@ export class BidsService {
 
   async create(createBidDto: CreateBidDto, bidder: User): Promise<Bid> {
     const { amount, auctionId } = createBidDto;
-    // const auction = await this.auctionsRepository.findOneBy({ id: auctionId });
     return this.dataSource.transaction(async (transactionalEntityManager) => {
       const auction = await transactionalEntityManager
         .createQueryBuilder(Auction, 'auction')
